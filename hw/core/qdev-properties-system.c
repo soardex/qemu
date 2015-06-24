@@ -326,8 +326,8 @@ static void set_vlan(Object *obj, Visitor *v, void *opaque,
 
     hubport = net_hub_port_find(id);
     if (!hubport) {
-        error_set(errp, QERR_INVALID_PARAMETER_VALUE,
-                  name, prop->info->name);
+        error_setg(errp, QERR_INVALID_PARAMETER_VALUE,
+                   name, prop->info->name);
         return;
     }
     *ptr = hubport;
@@ -389,7 +389,7 @@ void qdev_set_nic_properties(DeviceState *dev, NICInfo *nd)
     nd->instantiated = 1;
 }
 
-static int qdev_add_one_global(QemuOpts *opts, void *opaque)
+static int qdev_add_one_global(void *opaque, QemuOpts *opts, Error **errp)
 {
     GlobalProperty *g;
 
@@ -404,5 +404,6 @@ static int qdev_add_one_global(QemuOpts *opts, void *opaque)
 
 void qemu_add_globals(void)
 {
-    qemu_opts_foreach(qemu_find_opts("global"), qdev_add_one_global, NULL, 0);
+    qemu_opts_foreach(qemu_find_opts("global"),
+                      qdev_add_one_global, NULL, NULL);
 }

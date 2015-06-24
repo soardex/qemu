@@ -45,6 +45,7 @@
 #include "hw/usb.h"
 #include "hw/cpu/icc_bus.h"
 #include "qemu/error-report.h"
+#include "migration/migration.h"
 
 /* ICH9 AHCI has 6 ports */
 #define MAX_SATA_PORTS     6
@@ -79,7 +80,6 @@ static void pc_q35_init(MachineState *machine)
     GSIState *gsi_state;
     ISABus *isa_bus;
     int pci_enabled = 1;
-    qemu_irq *cpu_irq;
     qemu_irq *gsi;
     qemu_irq *i8259;
     int i;
@@ -230,8 +230,7 @@ static void pc_q35_init(MachineState *machine)
     } else if (xen_enabled()) {
         i8259 = xen_interrupt_controller_init();
     } else {
-        cpu_irq = pc_allocate_cpu_irq();
-        i8259 = i8259_init(isa_bus, cpu_irq[0]);
+        i8259 = i8259_init(isa_bus, pc_allocate_cpu_irq());
     }
 
     for (i = 0; i < ISA_NUM_IRQS; i++) {
@@ -291,6 +290,7 @@ static void pc_q35_init(MachineState *machine)
 
 static void pc_compat_2_3(MachineState *machine)
 {
+    savevm_skip_section_footers();
 }
 
 static void pc_compat_2_2(MachineState *machine)
@@ -403,6 +403,7 @@ DEFINE_Q35_MACHINE(v2_4, "pc-q35-2.4", NULL,
 static void pc_q35_2_3_machine_options(MachineClass *m)
 {
     pc_q35_2_4_machine_options(m);
+    m->no_floppy = 0;
     m->alias = NULL;
     SET_MACHINE_COMPAT(m, PC_COMPAT_2_3);
 }
